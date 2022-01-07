@@ -3,22 +3,53 @@ const express = require('express');
 const axios   = require('axios');
 const cheerio = require('cheerio');
 const res     = require('express/lib/response');
+const cors    = require('cors')
+const cache   = require('memory-cache');
+const config  = require('./config');
 
-const app     = express();
-var spaces    = [];
+var app = express()
 
-axios.get('https://coworkingmap.org/map/?format=json&key=LG7WsM7ufvhhTMLK3NJawkSH')
-    .then((response) => {
-        response.data.forEach(element => {
-            element.slug = element.url.replace(/(^https:\/\/coworkingmap.org\/)/gi, '').replace('\/', '');
-            spaces.push(element);
-        });
-    })  
+var corsOptions = {
+    origin: true,
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  }
+   
+app.use(cors(corsOptions));
+let memCache = new cache.Cache();
+
+var cacheRequest = (duration) => {
+    return (req, res, next) => {
+        let key = '__express__' + req.originalUrl || req.url;
+        let cachedBody = memCache.get(key);
+
+        if (cachedBody) {
+            res.send(cachedBody);
+            return;
+        } else {
+            res.sendResponse = res.send;
+            res.send = (body) => {
+                memCache.put(key, body, duration * 1000);
+                res.sendResponse(body);
+            }
+            next();
+        }
+    }
+}
+
+spaces = [];
+axios.get('https://coworkingmap.org/map/?format=json&key=LG7WsM7ufvhhTMLK3NJawkSH',)
+.then((response) => {
+    response.data.forEach(element => {
+        element.slug = element.url.replace(/(^https:\/\/coworkingmap.org\/)/gi, '').replace('\/', '');
+        spaces.push(element);
+    });
+    cache.put('spaces', spaces);
+})  
 .catch(function (error) {
     console.log(error)
 });
 
-app.get('/', (req, res) => {
+app.get('/', cacheRequest(config.cacheTTL), (req, res) => {
     res.json(  
     {
         'title': 'Welcome to my little Coworking Spaces Api.',
@@ -30,11 +61,11 @@ app.get('/', (req, res) => {
     });
 });
 
-app.get('/spaces', (req, res) => {
+app.get('/spaces', cacheRequest(config.cacheTTL), (req, res) => {
     res.json(spaces);
 });
 
-app.get('/spaces/:spaceIdentifier', async(req, res) => {
+app.get('/spaces/:spaceIdentifier', cacheRequest(config.cacheTTL), async(req, res) => {
     const spaceIdentifier = req.params.spaceIdentifier;
     const space           = spaces.filter(space => spaceIdentifier === space.slug)[0];
 
@@ -46,7 +77,7 @@ app.get('/spaces/:spaceIdentifier', async(req, res) => {
         space['subTitle']    = $('h2', html).first().text();
         space['description'] = $('p.description', html).first().text();
         space['website']     = $('a[itemprop="url"]', html).first().text();
-        space['cover-photo'] = $('.space-image img', html).first().attr('src');
+        space['coverPhoto']  = $('.space-image img', html).first().attr('src');
         space['logo']        = $('.logo-space img[itemprop="logo"]', html).first().attr('src');
 
         let prices = [];

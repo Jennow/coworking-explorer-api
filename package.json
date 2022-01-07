@@ -1,5 +1,5 @@
 {
-  "name": "climate-change-api",
+  "name": "coworking-explorer-api",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,6 +11,8 @@
   "dependencies": {
     "axios": "^0.24.0",
     "cheerio": "^1.0.0-rc.10",
-    "express": "^4.17.1"
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "memory-cache": "^0.2.0"
   }
 }
