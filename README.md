@@ -1,10 +1,13 @@
 # coworking-explorer-api
+Welcome to my little Coworking Spaces Api.
+
+I use the page https://coworkingmap.org/ as a source for my data by utilizing their public google maps API and parsing their frontend through cheerio.
 
 # Start Server
 npm start
 
 # Routes
-GET /spaces
+> GET /spaces
 ```json
 [
   {
@@ -35,7 +38,7 @@ GET /spaces
 ]
 ```
 
-GET /spaces/{identifier}
+> GET /spaces/{identifier}
 
 ```json
 {
@@ -93,4 +96,5 @@ GET /spaces/{identifier}
 
 # Sources
 https://coworkingmap.org/
+
 Inspired by: Build a Web Scraper (super simple!)- by Code with Ania Kubów (https://www.youtube.com/watch?v=-3lqUHeZs_0)
