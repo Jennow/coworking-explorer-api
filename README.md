@@ -1,12 +1,13 @@
 # coworking-explorer-api
 Welcome to my little Coworking Spaces Api.
 
+This API was built using node express, axios and jquery cheerio.
 I use the page https://coworkingmap.org/ as a source for my data by utilizing their public google maps API and parsing their frontend through cheerio.
 
-# Start Server
+## Start Server
 npm start
 
-# Routes
+## Routes
 > GET /spaces
 ```json
 [
@@ -94,7 +95,7 @@ npm start
 }
 ```
 
-# Sources
+## Sources
 https://coworkingmap.org/
 
 Inspired by: Build a Web Scraper (super simple!)- by Code with Ania Kubów (https://www.youtube.com/watch?v=-3lqUHeZs_0)
