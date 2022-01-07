@@ -43,16 +43,11 @@ app.get('/spaces/:spaceIdentifier', async(req, res) => {
         const html = response.data;
         const $    = cheerio.load(html);
 
-        let subTitle    = $('h2', html).first().text();
-        let description = $('p.description', html).first().text();
-        let website     = $('a[itemprop="url"]', html).first().text();
-        let logo        = $('img[itemprop="logo"]', html).first().attr('src');
-        let coverPoto   = $('.space-image img', html).first().attr('src');
-    
-        space['subTitle']    = subTitle;
-        space['description'] = description;
-        space['website']     = website;
-        space['cover-photo'] = coverPoto;
+        space['subTitle']    = $('h2', html).first().text();
+        space['description'] = $('p.description', html).first().text();
+        space['website']     = $('a[itemprop="url"]', html).first().text();
+        space['cover-photo'] = $('.space-image img', html).first().attr('src');
+        space['logo']        = $('.logo-space img[itemprop="logo"]', html).first().attr('src');
 
         let prices = [];
 
