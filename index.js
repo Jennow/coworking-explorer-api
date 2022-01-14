@@ -49,7 +49,7 @@ axios.get('https://coworkingmap.org/map/?format=json&key=LG7WsM7ufvhhTMLK3NJawkS
     console.log(error)
 });
 
-app.get('/', cacheRequest(config.cacheTTL), (req, res) => {
+app.get('/api', cacheRequest(config.cacheTTL), (req, res) => {
     res.json(  
     {
         'title': 'Welcome to my little Coworking Spaces Api.',
@@ -61,11 +61,11 @@ app.get('/', cacheRequest(config.cacheTTL), (req, res) => {
     });
 });
 
-app.get('/spaces', cacheRequest(config.cacheTTL), (req, res) => {
+app.get('/api/spaces', cacheRequest(config.cacheTTL), (req, res) => {
     res.json(spaces);
 });
 
-app.get('/spaces/:spaceIdentifier', cacheRequest(config.cacheTTL), async(req, res) => {
+app.get('/api/spaces/:spaceIdentifier', cacheRequest(config.cacheTTL), async(req, res) => {
     const spaceIdentifier = req.params.spaceIdentifier;
     const space           = spaces.filter(space => spaceIdentifier === space.slug)[0];
 
