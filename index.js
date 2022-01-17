@@ -49,7 +49,7 @@ axios.get('https://coworkingmap.org/map/?format=json&key=LG7WsM7ufvhhTMLK3NJawkS
     console.log(error)
 });
 
-app.get('/api', cacheRequest(config.cacheTTL), (req, res) => {
+app.get('/', cacheRequest(config.cacheTTL), (req, res) => {
     res.json(  
     {
         'title': 'Welcome to my little Coworking Spaces Api.',
@@ -61,11 +61,11 @@ app.get('/api', cacheRequest(config.cacheTTL), (req, res) => {
     });
 });
 
-app.get('/api/spaces', cacheRequest(config.cacheTTL), (req, res) => {
+app.get('/spaces', cacheRequest(config.cacheTTL), (req, res) => {
     res.json(spaces);
 });
 
-app.get('/api/spaces/:spaceIdentifier', cacheRequest(config.cacheTTL), async(req, res) => {
+app.get('/spaces/:spaceIdentifier', cacheRequest(config.cacheTTL), async(req, res) => {
     const spaceIdentifier = req.params.spaceIdentifier;
     const space           = spaces.filter(space => spaceIdentifier === space.slug)[0];
 
@@ -76,7 +76,11 @@ app.get('/api/spaces/:spaceIdentifier', cacheRequest(config.cacheTTL), async(req
 
         space['subTitle']    = $('h2', html).first().text();
         space['description'] = $('p.description', html).first().text();
-        space['website']     = $('a[itemprop="url"]', html).first().text();
+        let website          = $('a[itemprop="url"]', html).first().text().replace(/[^A-Z0-9\/\:\.\_\-\&\?]/ig, '');
+        if (!website.match(/^[a-zA-Z]+:\/\//)) {
+            website = 'http://' + website;
+        }
+        space['website']     = website;
         space['coverPhoto']  = $('.space-image img', html).first().attr('src');
         space['logo']        = $('.logo-space img[itemprop="logo"]', html).first().attr('src');
 
