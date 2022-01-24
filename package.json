@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mongoosejs/double": "^0.2.0",
     "axios": "^0.24.0",
     "cheerio": "^1.0.0-rc.10",
     "cors": "^2.8.5",
