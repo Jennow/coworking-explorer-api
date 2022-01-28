@@ -2,16 +2,12 @@ const PORT      = 8000;
 const express   = require('express');
 const axios     = require('axios');
 const cheerio   = require('cheerio');
-const res       = require('express/lib/response');
 const cors      = require('cors')
 const cache     = require('memory-cache');
 const config    = require('./config');
-const mongoose  = require("mongoose")
 const connectDB = require("./models/db")
 const database  = "coworking_explorer"
 const Spaces    = require("./models/Spaces");
-const { json } = require('express/lib/response');
-const { range } = require('express/lib/request');
 
 var app         = express()
 var corsOptions = {
@@ -64,34 +60,55 @@ app.get('/', cacheRequest(config.cacheTTL), (req, res) => {
 
 app.get('/spaces', cacheRequest(config.cacheTTL), (req, res) => {
 
-    let lat = parseFloat(req.query.lat);
-    let lng = parseFloat(req.query.lng);
-    let zoom = req.query.zoom;
+    let north = parseFloat(req.query.north);
+    let south = parseFloat(req.query.south);
+    let east = parseFloat(req.query.east);
+    let west = parseFloat(req.query.west);
 
-    if (!lat || !lng) {
-        lng = 10.000654;
-        lat = 53.550341;
+    let minLat = 0;
+    let maxLat = 0;
+    let minLng = 0;
+    let maxLng = 0;
+
+    if (!north || !south || !east || !west) {
+        let lat = parseFloat(req.query.lat);
+        let lng = parseFloat(req.query.lng);
+        let zoom = req.query.zoom;
+    
+        if (!lat || !lng) {
+            lng = 10.000654;
+            lat = 53.550341;
+        }
+    
+        if (!zoom) {
+            zoom = 12;
+        }
+        let range = 10 / zoom;
+
+        minLat = lat - range;
+        maxLat = lat + range;
+        minLng = lng - range;
+        maxLng = lng + range;
+
+    } else {
+        minLat = south;
+        maxLat = north;
+        minLng = west;
+        maxLng = east;
     }
-
-    if (!zoom) {
-        zoom = 12;
-    }
-
-    let range = 10 / zoom;
-    console.log(req.query);
 
     connectDB("mongodb://127.0.0.1:27017/"+database)
     Spaces.find(
         { 
             lat: 
                 {
-                    $gte: lat - range,
-                    $lte: lat + range,
+                    $gte: minLat,
+                    $lte: maxLat,
                 },
             lng:
                 {
-                    $gte: lng - range,
-                    $lte: lng + range
+                    $gte: minLng,
+                    $lte: maxLng,
                 }
         
         }, (err, spaces)=>{ 
@@ -107,9 +124,8 @@ app.get('/spaces/:spaceIdentifier', cacheRequest(config.cacheTTL), async(req, re
 
     Spaces.findOne({identifier:spaceIdentifier}, (err, space)=>{ 
         if(err) throw err
-        console.log(space)
-
-        if (space.logo) {
+        
+        if (space.logo && space.largeCoverPhoto) {
             res.json(space);
             return;
         }
@@ -124,9 +140,9 @@ app.get('/spaces/:spaceIdentifier', cacheRequest(config.cacheTTL), async(req, re
             if (!website.match(/^[a-zA-Z]+:\/\//)) {
                 website = 'http://' + website;
             }
-            space['website']     = website;
-            space['coverPhoto']  = $('.space-image img', html).first().attr('src');
-            space['logo']        = $('.logo-space img[itemprop="logo"]', html).first().attr('src');
+            space['website']         = website;
+            space['largeCoverPhoto'] = $('.space-image img', html).first().attr('src');
+            space['logo']            = $('.logo-space img[itemprop="logo"]', html).first().attr('src');
 
             let prices = [];
             $('ul.table-list li', html).each(function() {
@@ -206,7 +222,7 @@ async function syncSpaces() {
                 city: space['map']['city'],
                 state: space['map']['state'],
                 postCode: space['map']['post_code'],
-                contry: space['map']['country'],
+                country: space['map']['country'],
                 countryShort: space['map']['country_short'],
             }
     
