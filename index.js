@@ -207,6 +207,11 @@ async function syncSpaces() {
 
         for (const space of spaces) {    
             connectDB("mongodb://127.0.0.1:27017/"+database)
+
+            if (!space['map']) {
+                continue;
+            }
+            
             let spaceData = {
                 id: space['ID'],
                 name: space['name'],
